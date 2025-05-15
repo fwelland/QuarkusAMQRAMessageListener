@@ -1,0 +1,24 @@
+plugins {
+    id 'java'
+    id 'io.quarkus' version '3.22.2'
+}
+
+repositories {
+   mavenCentral()
+}
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    options.encoding = 'UTF-8'
+    options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+}
+
+
+dependencies {
+   implementation enforcedPlatform("io.quarkus:quarkus-universe-bom:3.22.2")
+   //implementation 'io.quarkus:quarkus-vertx-http'    // added for dev UI, in general may not be needed
+   implementation 'io.quarkiverse.ironjacamar:quarkus-ironjacamar:1.5.4'
+   implementation 'org.apache.activemq:activemq-ra:6.1.6'
+}
+
