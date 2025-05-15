@@ -1,0 +1,12 @@
+#!/bin/bash
+if [ "$#" -ne 1   ]; then
+	echo "exactly 1 positive integer arg, like ./dumpMessages 13" 
+	exit 1
+fi 
+
+for ii in $(seq 1 $1)
+do
+	idxStr=$(spellout $ii)	
+	amq --user $AMQ_BROKER_USER --pass $AMQ_BROKER_PASS --broker $AMQ_BROKER_URL  --put "$idxStr"  myQueue
+done
+amq --user $AMQ_BROKER_USER --pass $AMQ_BROKER_PASS --broker $AMQ_BROKER_URL  --put "DONE"  myQueue

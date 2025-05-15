@@ -4,7 +4,6 @@ import io.quarkiverse.ironjacamar.ResourceAdapterKind;
 import io.quarkiverse.ironjacamar.ResourceAdapterTypes;
 import io.quarkiverse.ironjacamar.runtime.endpoint.MessageEndpointWrapper;
 import io.quarkus.logging.Log;
-import io.vertx.core.WorkerExecutor;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Message;
 import jakarta.jms.MessageListener;
@@ -28,8 +27,6 @@ import org.apache.activemq.ra.ActiveMQResourceAdapter;
 public class AMQResourceFactory
    implements ResourceAdapterFactory
 {
-   private WorkerExecutor executor;
-
    public AMQResourceFactory()
    {
       Log.debug("Construction");
