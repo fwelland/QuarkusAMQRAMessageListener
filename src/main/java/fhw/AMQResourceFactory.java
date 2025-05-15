@@ -4,7 +4,6 @@ import io.quarkiverse.ironjacamar.ResourceAdapterKind;
 import io.quarkiverse.ironjacamar.ResourceAdapterTypes;
 import io.quarkiverse.ironjacamar.runtime.endpoint.MessageEndpointWrapper;
 import io.quarkus.logging.Log;
-import io.vertx.core.Vertx;
 import io.vertx.core.WorkerExecutor;
 import jakarta.jms.ConnectionFactory;
 import jakarta.jms.Message;
@@ -16,7 +15,6 @@ import jakarta.resource.spi.ManagedConnectionFactory;
 import jakarta.resource.spi.ResourceAdapter;
 import jakarta.resource.spi.endpoint.MessageEndpoint;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import org.apache.activemq.ra.ActiveMQActivationSpec;
 import org.apache.activemq.ra.ActiveMQManagedConnectionFactory;
 import org.apache.activemq.ra.ActiveMQResourceAdapter;
@@ -35,18 +33,7 @@ public class AMQResourceFactory
    public AMQResourceFactory()
    {
       Log.debug("Construction");
-      Vertx vertx = Vertx.vertx();
-      if(null != vertx)
-      {
-         //
-         // Basically, this is number of threads that can
-         // conscurrently run 'onMessage()' methods.
-         // In longer view, this should be tunnable via a property
-         //
-         int numWorkers = 10;
-         executor =  vertx.createSharedWorkerExecutor("MyMessageListener", numWorkers);
-         Log.infof("Message worker pool created with %d workers", numWorkers );
-      }
+
    }
 
    @Override
@@ -103,44 +90,25 @@ public class AMQResourceFactory
    public MessageEndpoint wrap(MessageEndpoint endpoint, Object resourceEndpoint)
    {
       Log.debugf("wrap invoked");
-      return new BackgroundJMSMessageEndpoint(endpoint, (MessageListener) resourceEndpoint, executor);
+      return new JMSMessageEndpoint(endpoint, (MessageListener) resourceEndpoint);
    }
 
-   private static class BackgroundJMSMessageEndpoint
-           extends MessageEndpointWrapper
-           implements MessageListener
+   private static class JMSMessageEndpoint
+      extends MessageEndpointWrapper
+      implements MessageListener
    {
       private final MessageListener ml;
-      private final WorkerExecutor we;
 
-      public BackgroundJMSMessageEndpoint(MessageEndpoint messageEndpoint, MessageListener listener, WorkerExecutor executor)
+      public JMSMessageEndpoint(MessageEndpoint messageEndpoint, MessageListener listener)
       {
          super(messageEndpoint);
          ml = listener;
-         we = executor;
       }
 
       @Override
       public void onMessage(Message message)
       {
-         we.executeBlocking(  new Callable <Boolean>()
-         {
-            //
-            // This is just a quick & dirty
-            // callable that delegates to a
-            // vertx executor.   Some rethinking
-            // & refactoring of this callable
-            // is needed.   ALSO, not clear
-            // of XA concerns and how DI actions
-            // will happen.
-            //
-            @Override
-            public Boolean call() throws Exception
-            {
-               ml.onMessage(message);
-               return(Boolean.TRUE);
-            }
-         });
+         ml.onMessage(message);
       }
    }
 }
